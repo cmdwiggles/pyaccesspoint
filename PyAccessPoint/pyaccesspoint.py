@@ -63,6 +63,7 @@ class AccessPoint:
         self.netmask = netmask
         self.ssid = ssid
         self.password = password
+        self.channel = channel
         self.root_directory = "/etc/accesspoint/"
         self.hostapd_config_path = os.path.join(self.root_directory, "hostapd.config")
 

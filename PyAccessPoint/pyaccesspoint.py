@@ -20,7 +20,7 @@ ssid={0}
 #sets the mode of wifi, depends upon the devices you will be using. It can be a,b,g,n. Setting to g ensures backward compatiblity.
 hw_mode=g
 #sets the channel for your wifi
-channel=6
+channel={3}
 #macaddr_acl sets options for mac address filtering. 0 means "accept unless in deny list"
 macaddr_acl=0
 #setting ignore_broadcast_ssid to 1 will disable the broadcasting of ssid
@@ -56,7 +56,7 @@ rsn_pairwise=CCMP
 
 class AccessPoint:
     def __init__(self, wlan='wlan0', inet=None, ip='192.168.45.1', netmask='255.255.255.0', ssid='MyAccessPoint',
-                 password='1234567890'):
+                 password='1234567890', channel=6):
         self.wlan = wlan
         self.inet = inet
         self.ip = ip
@@ -95,6 +95,10 @@ class AccessPoint:
             return False
 
         self.password = str(self.password)
+
+        if not 1 <= self.channel <= 14:
+            logging.error("Wifi channel must be between 1-14")
+            return False
 
         return True
 

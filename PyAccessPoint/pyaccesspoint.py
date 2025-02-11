@@ -246,7 +246,7 @@ class AccessPoint:
         
         # restart wpa_supplicant
         logging.debug('restarting wpa_supplicant')
-        r = self._execute_shell('wpa_supplicant -B -c/etc/wpa_supplicant/wpa_supplicant.conf -i wlan0')
+        r = self._execute_shell('wpa_supplicant -B -c/etc/wpa_supplicant/wpa_supplicant.conf -i %s' % self.wlan)
         logging.debug(r.strip())
         
         logging.debug('hotspot has stopped.')

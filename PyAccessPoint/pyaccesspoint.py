@@ -10,7 +10,7 @@ import psutil
 import subprocess
 import logging
 
-config = '''
+config_n = '''
 #sets the wifi interface to use, is wlan0 in most cases
 interface={2}
 #driver to use, nl80211 works in most cases
@@ -53,6 +53,50 @@ rsn_pairwise=CCMP
 #For No encryption, you don't need to set any options
 '''
 
+config_ac = '''
+#sets the wifi interface to use, is wlan0 in most cases
+interface={2}
+#driver to use, nl80211 works in most cases
+driver=nl80211
+#sets the ssid of the virtual wifi access point
+ssid={0}
+#sets the mode of wifi, depends upon the devices you will be using. It can be a,b,g,n. Setting to g ensures backward compatiblity.
+hw_mode=a
+#sets the channel for your wifi
+channel={3}
+#macaddr_acl sets options for mac address filtering. 0 means "accept unless in deny list"
+macaddr_acl=0
+#setting ignore_broadcast_ssid to 1 will disable the broadcasting of ssid
+ignore_broadcast_ssid=0
+#Sets authentication algorithm
+#1 - only open system authentication
+#2 - both open system authentication and shared key authentication
+auth_algs=1
+#####Sets WPA and WPA2 authentication#####
+#wpa option sets which wpa implementation to use
+#1 - wpa only
+#2 - wpa2 only
+#3 - both
+wpa=3
+#sets wpa passphrase required by the clients to authenticate themselves on the network
+wpa_passphrase={1}
+#sets wpa key management
+wpa_key_mgmt=WPA-PSK
+#sets encryption used by WPA
+wpa_pairwise=TKIP
+#sets encryption used by WPA2
+rsn_pairwise=CCMP
+#################################
+#####Sets WEP authentication#####
+#WEP is not recommended as it can be easily broken into
+#wep_default_key=0
+#wep_key0=qwert    #5,13, or 16 characters
+#optionally you may also define wep_key2, wep_key3, and wep_key4
+#################################
+#For No encryption, you don't need to set any options
+'''
+''' defaults to 2.4GHz '''
+config = config_n
 
 class AccessPoint:
     def __init__(self, wlan='wlan0', inet=None, ip='192.168.45.1', netmask='255.255.255.0', ssid='MyAccessPoint',
@@ -97,11 +141,16 @@ class AccessPoint:
 
         self.password = str(self.password)
 
-        if not 1 <= self.channel <= 14:
-            logging.error("Wifi channel must be between 1-14")
-            return False
+        if 1 <= self.channel <= 13:
+            config = config_n
+            return True
 
-        return True
+        if 32 <= self.channel <= 177:
+            config = config_ac
+            return True
+            
+        logging.error("Invalid wifi channel %d" % self.channel)
+        return False
 
     def _write_hostapd_config(self):
         with open(self.hostapd_config_path, 'w') as hostapd_config_file:
@@ -189,19 +238,7 @@ class AccessPoint:
         r = self._execute_shell(s)
         logging.debug(r)
 
-        # ~ f = open(os.getcwd() + '/hostapd.tem','r')
-        # ~ lout=[]
-        # ~ for line in f.readlines():
-        # ~ lout.append(line.replace('<SSID>',SSID).replace('<PASS>',password))
-        # ~
-        # ~ f.close()
-        # ~ f = open(os.getcwd() + '/hostapd.conf','w')
-        # ~ f.writelines(lout)
-        # ~ f.close()
-
-        # writelog('created: ' + os.getcwd() + '/hostapd.conf')
         # start hostapd
-        # s = 'hostapd -B ' + os.path.abspath('run.conf')
         s = 'hostapd -B {}'.format(self.hostapd_config_path)
         logging.debug(s)
         logging.debug('running hostapd')
